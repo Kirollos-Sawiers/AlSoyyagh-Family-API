@@ -1,0 +1,93 @@
+{
+  "file": "F:\\ALSOYYAGH Family\\alsoyyagh-family-api\\data\\family.xlsx",
+  "trees": {
+    "EGYPT": {
+      "members": 974,
+      "female": 469,
+      "carryingFamilyName": 434,
+      "maxDepth": 8,
+      "rootPeople": [
+        "0 فرج ميخائيل حنا"
+      ],
+      "flaggedForReview": 11
+    },
+    "JORDAN": {
+      "members": 174,
+      "female": 73,
+      "carryingFamilyName": 107,
+      "maxDepth": 6,
+      "rootPeople": [
+        "1 ميخائيل حنا منصور المنير المقدسى",
+        "2 ؟ الآسى"
+      ],
+      "flaggedForReview": 1
+    }
+  },
+  "warnings": [
+    {
+      "tree": "EGYPT",
+      "type": "NO_SERIAL",
+      "ref": "Egypt!H109",
+      "text": "["
+    },
+    {
+      "tree": "EGYPT",
+      "type": "NO_SERIAL",
+      "ref": "Egypt!H156",
+      "text": "مرفت الشويلى"
+    },
+    {
+      "tree": "EGYPT",
+      "type": "DUPLICATE_SERIAL_DIFFERENT_NAME",
+      "ref": "Egypt!G172",
+      "serial": "1-6-1-6-1",
+      "a": "عماد",
+      "b": "مدحت"
+    },
+    {
+      "tree": "EGYPT",
+      "type": "DUPLICATE_SERIAL_DIFFERENT_NAME",
+      "ref": "Egypt!H172",
+      "serial": "1-6-1-6-1-1",
+      "a": "يوشيا",
+      "b": "نوفير"
+    },
+    {
+      "tree": "EGYPT",
+      "type": "DUPLICATE_SERIAL_DIFFERENT_NAME",
+      "ref": "Egypt!H178",
+      "serial": "1-6-1-6-2-2",
+      "a": "مورة",
+      "b": "سولاف"
+    },
+    {
+      "tree": "EGYPT",
+      "type": "DUPLICATE_SERIAL_DIFFERENT_NAME",
+      "ref": "Egypt!H534",
+      "serial": "3-9-2-1-2-1",
+      "a": "أندرو",
+      "b": "كارين"
+    },
+    {
+      "tree": "EGYPT",
+      "type": "DUPLICATE_SERIAL_DIFFERENT_NAME",
+      "ref": "Egypt!G636",
+      "serial": "3-11-1-3-1",
+      "a": "مونيكا",
+      "b": "ميلانيا"
+    },
+    {
+      "tree": "EGYPT",
+      "type": "TYPO_TOLERATED",
+      "ref": "Egypt!G686",
+      "text": "جميلة 5-2-1-4 ) * + فاروق فريد صمؤيل ( 1-3-1-2 )"
+    },
+    {
+      "tree": "JORDAN",
+      "type": "MISSING_PARENT",
+      "serial": "1-2-5-1-6-2-1",
+      "name": "فيليب",
+      "attachedTo": "1-2-5-1-6"
+    }
+  ]
+}
