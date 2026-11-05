@@ -99,8 +99,8 @@ router.patch("/:id", requireRole("ADMIN"), async (req, res) => {
   res.json({ ok: true });
 });
 
-// Replace which country trees a user may open
-router.put("/:id/trees", requireRole("ADMIN"), async (req, res) => {
+// Replace which country trees a user may open (super admin only)
+router.put("/:id/trees", requireRole("SUPER_ADMIN"), async (req, res) => {
   const { trees } = setTreesSchema.parse(req.body);
   const target = await loadTarget(req.params.id);
   await tx(async (c) => {

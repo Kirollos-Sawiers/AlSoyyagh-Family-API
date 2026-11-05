@@ -54,7 +54,7 @@ export const hasRole = (user, minRole) =>
 
 // Can this user open this country's tree?
 export async function canAccessTree(user, tree) {
-  if (hasRole(user, "ADMIN")) return true;
+  if (user.role === "SUPER_ADMIN") return true;
   const { rowCount } = await query(
     "SELECT 1 FROM user_tree_access WHERE user_id=$1 AND tree=$2",
     [user.id, tree],

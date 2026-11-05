@@ -194,8 +194,8 @@ There are exactly two trees:
 | `EGYPT` | Egyptian branch. Root is the grandfather with serial `0` and eight numbered children. |
 | `JORDAN` | Jordanian branch. Has multiple root ancestors (serials `1` and `2` in the source sheet). |
 
-A user with `ADMIN` or `SUPER_ADMIN` role can access both trees automatically. Other
-users need an explicit `user_tree_access` grant.
+A user with the `SUPER_ADMIN` role can access both trees automatically. All other
+users, including `ADMIN`, need an explicit `user_tree_access` grant.
 
 ### Members
 
@@ -237,8 +237,8 @@ Roles are ordered: `USER` < `CONTRIBUTOR` < `ADMIN` < `SUPER_ADMIN`.
 | --- | :---: | :---: | :---: | :---: |
 | Log in, change own password | Yes | Yes | Yes | Yes |
 | View granted trees, search, browse members | Yes | Yes | Yes | Yes |
-| Access both trees automatically | No | No | Yes | Yes |
-| Request access to the other tree | Yes | Yes | - | - |
+| Access both trees automatically | No | No | No | Yes |
+| Request access to the other tree | Yes | Yes | Yes | - |
 | Submit member edit / add-child request | No | Yes | - | - |
 | View own change requests | - | Yes | Yes | Yes |
 | View all change requests | No | No | Yes | Yes |
@@ -246,10 +246,11 @@ Roles are ordered: `USER` < `CONTRIBUTOR` < `ADMIN` < `SUPER_ADMIN`.
 | View join requests | No | No | Yes | Yes |
 | Approve / reject join requests | No | No | No | Yes |
 | View all access requests | No | No | Yes | Yes |
-| Approve / reject access requests | No | No | Yes | Yes |
+| Approve access requests | No | No | No | Yes |
+| Reject access requests | No | No | Yes | Yes |
 | List users | No | No | Yes | Yes |
 | Change user role / status | No | No | Limited | Yes |
-| Grant / replace tree access | No | No | Yes | Yes |
+| Grant / replace tree access | No | No | No | Yes |
 | Reset another user's password | No | No | No | Yes |
 | View admin dashboard summary | No | No | Yes | Yes |
 
@@ -280,13 +281,14 @@ immediately.
 
 Tree access is evaluated as follows:
 
-1. `ADMIN` and `SUPER_ADMIN` can access every tree.
-2. Other roles can access a tree only if a matching row exists in `user_tree_access`.
+1. `SUPER_ADMIN` can access every tree.
+2. All other roles, including `ADMIN`, can access a tree only if a matching row exists in
+   `user_tree_access`.
 3. Tree-specific member routes verify the target member belongs to a tree the user may
    access.
 
 Access to the other tree is requested through `POST /api/access-requests` and granted by
-an admin.
+a super admin.
 
 ---
 
@@ -382,7 +384,7 @@ Common error codes:
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
 | `POST` | `/api/auth/login` | Public | Log in with e-mail and password |
-| `GET` | `/api/auth/me` | Bearer | Current user and accessible trees |
+| `GET` | `/api/auth/me` | Bearer | Current user and accessible trees (all trees only for SUPER_ADMIN) |
 | `POST` | `/api/auth/change-password` | Bearer | Change password (required on first login) |
 
 **Login**
@@ -496,7 +498,7 @@ temporary password at first login.
 | `GET` | `/api/users` | Bearer | ADMIN+ | List all users with tree grants |
 | `GET` | `/api/users/:id/avatar` | Bearer | Self or ADMIN+ | Fetch a user avatar |
 | `PATCH` | `/api/users/:id` | Bearer | ADMIN+ | Change role and/or status |
-| `PUT` | `/api/users/:id/trees` | Bearer | ADMIN+ | Replace tree grants |
+| `PUT` | `/api/users/:id/trees` | Bearer | SUPER_ADMIN | Replace tree grants |
 | `POST` | `/api/users/:id/reset-password` | Bearer | SUPER_ADMIN | Set or generate a temporary password |
 
 **Update role/status**
@@ -535,7 +537,7 @@ is complete.
 | `POST` | `/api/access-requests` | Bearer | Any | Request access to a tree |
 | `GET` | `/api/access-requests/mine` | Bearer | Any | Own request history |
 | `GET` | `/api/access-requests?status=` | Bearer | ADMIN+ | List all requests |
-| `POST` | `/api/access-requests/:id/approve` | Bearer | ADMIN+ | Approve and grant access |
+| `POST` | `/api/access-requests/:id/approve` | Bearer | SUPER_ADMIN | Approve and grant access |
 | `POST` | `/api/access-requests/:id/reject` | Bearer | ADMIN+ | Reject |
 
 **Create**
@@ -755,7 +757,7 @@ Status values: `ACTIVE`, `DISABLED`.
 
 ### `user_tree_access`
 
-Which trees a non-admin user may open.
+Which trees a non-super-admin user may open.
 
 Key columns: `user_id`, `tree` (`EGYPT`/`JORDAN`), `granted_by`, `granted_at`.
 Primary key: `(user_id, tree)`.
@@ -1131,7 +1133,7 @@ Operational notes:
 | TLS/SSL error connecting to Neon | SSL setting mismatch | Set `DATABASE_SSL=true` |
 | CORS errors in the browser | Origin not allow-listed | Add it to `CORS_ORIGINS` (plural), no trailing slash |
 | `PASSWORD_CHANGE_REQUIRED` on every route | First-login password not changed | Call `POST /api/auth/change-password` |
-| `TREE_ACCESS_REQUIRED` | User lacks a grant for that tree | Request access or have an admin grant it |
+| `TREE_ACCESS_REQUIRED` | User lacks a grant for that tree | Request access or have a super admin grant it |
 | Import says the database already has members | Non-empty `members` table | Use `node scripts/import-excel.js --reset` |
 | Import fails with worksheet not found | Workbook lacks `Egypt`/`Jordan` sheets | Rename sheets or adapt `SHEETS` in the import script |
 | Login returns `429` | Too many failed attempts | Wait 15 minutes |

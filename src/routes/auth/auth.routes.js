@@ -70,7 +70,7 @@ router.get("/me", authenticate, async (req, res) => {
     "SELECT tree FROM user_tree_access WHERE user_id = $1",
     [req.user.id],
   );
-  const all = ["ADMIN", "SUPER_ADMIN"].includes(req.user.role);
+  const all = req.user.role === "SUPER_ADMIN";
   res.json({
     user: publicUser(req.user),
     trees: all ? ["EGYPT", "JORDAN"] : rows.map((r) => r.tree),

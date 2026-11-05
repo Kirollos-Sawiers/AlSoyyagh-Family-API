@@ -63,7 +63,8 @@ async function review(req, res, approve) {
   });
   res.json({ ok: true });
 }
-router.post('/:id/approve', requireRole('ADMIN'), (req, res) => review(req, res, true));
+// Approving grants tree access and is reserved for super admins; admins may still reject.
+router.post('/:id/approve', requireRole('SUPER_ADMIN'), (req, res) => review(req, res, true));
 router.post('/:id/reject', requireRole('ADMIN'), (req, res) => review(req, res, false));
 
 export default router;
