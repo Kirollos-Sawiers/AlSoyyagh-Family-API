@@ -96,6 +96,7 @@ The API powers a private family-tree website with the following goals:
 | File uploads | `multer` (in-memory, max 2 MB) |
 | Excel import | `exceljs` |
 | Security | `helmet`, `cors`, `express-rate-limit` |
+| CSV / PDF export | `pdfkit`, `arabic-persian-reshaper`, `bidi-js`, bundled Amiri font |
 | Configuration | `dotenv` (plus native `--env-file`) |
 | Testing | Node.js built-in test runner (`node:test`) |
 
@@ -137,6 +138,8 @@ JSON error envelope.
 
 ```
 alsoyyagh-family-api/
+├── assets/
+│   └── fonts/                   # Amiri-Regular.ttf + OFL licence (Arabic PDF)
 ├── data/
 │   ├── family.xlsx              # Source workbook (read-only during import)
 │   └── import-report.json       # Latest import statistics and warnings
@@ -163,9 +166,11 @@ alsoyyagh-family-api/
 │   │   ├── changeRequests/
 │   │   ├── trees/
 │   │   ├── members/
+│   │   ├── exports/
 │   │   └── admin/
 │   ├── services/
-│   │   └── members.js           # Member read/write domain logic
+│   │   ├── members.js           # Member read/write domain logic
+│   │   └── export.js            # Column catalogue, CSV and Arabic-aware PDF export
 │   └── utils/
 │       ├── audit.js             # Audit-log writer
 │       ├── constants.js         # Roles, role ranks, tree codes
@@ -695,6 +700,67 @@ Includes summary fields plus `bio`, `birthPlace`, `residence`, `occupation`, `no
 `father`, `mother`, `parent`, `spouses`, `children`, `siblings`, `linkedMember`,
 `needsReview`, `sourceCell`, `createdAt`, and `updatedAt`.
 
+### Exports
+
+Exports let a user pick which member columns to include, choose the tree scope, and
+download the result as CSV or PDF. All export routes require login, a completed
+password change, and access to **every** requested tree.
+
+| Method | Path | Auth | Description |
+| --- | --- | --- | --- |
+| `GET` | `/api/exports/columns` | Bearer | List exportable columns, trees, formats, and languages |
+| `GET` | `/api/exports/members` | Bearer | Download members as CSV or PDF |
+
+**Column metadata**
+
+```json
+{
+  "columns": [
+    {
+      "key": "serial",
+      "label": { "en": "Serial", "ar": "التسلسل" },
+      "type": "text",
+      "default": true
+    }
+  ],
+  "trees": ["EGYPT", "JORDAN"],
+  "formats": ["csv", "pdf"],
+  "languages": ["ar", "en"]
+}
+```
+
+`type` is `text`, `number`, or `boolean`. `default` marks the columns used when the
+client does not send `columns`.
+
+**Download**
+
+| Query parameter | Required | Values | Default |
+| --- | :---: | --- | --- |
+| `format` | Yes | `csv`, `pdf` | - |
+| `trees` | No | Comma-separated `EGYPT`, `JORDAN` | All trees the user can access |
+| `columns` | No | Comma-separated column keys, or `all` | Columns with `default: true` |
+| `lang` | No | `ar`, `en` | `ar` |
+
+Unknown columns or trees return `400 BAD_REQUEST`. Requesting a tree the user cannot
+open returns `403 TREE_ACCESS_REQUIRED`.
+
+```bash
+# CSV, Arabic headers, both trees, selected columns
+curl -L "http://localhost:4000/api/exports/members?format=csv&trees=EGYPT,JORDAN&columns=serial,name,nickname,fatherName&lang=ar" \
+  -H "Authorization: Bearer <token>" -o members.csv
+
+# PDF, all columns, Egypt only, English labels
+curl -L "http://localhost:4000/api/exports/members?format=pdf&trees=EGYPT&columns=all&lang=en" \
+  -H "Authorization: Bearer <token>" -o members.pdf
+```
+
+The response is a file attachment with `Content-Disposition` and `Cache-Control:
+no-store`. CSV files are UTF-8 with a BOM and CRLF line endings so Excel displays
+Arabic correctly. PDF files use the bundled Amiri font, Arabic presentation forms, and
+the Unicode bidi algorithm so Arabic text is connected and rendered right-to-left; the
+page switches to landscape when more than six columns are selected. Each export is
+recorded in the audit log as `MEMBERS_EXPORTED`.
+
 ### Admin
 
 | Method | Path | Auth | Role | Description |
@@ -817,7 +883,7 @@ Key columns: `id`, `user_id`, `action`, `entity`, `entity_id`, `details` (JSONB)
 Recorded actions include: `PASSWORD_CHANGED`, `JOIN_APPROVED`, `JOIN_REJECTED`,
 `USER_UPDATED`, `USER_TREES_SET`, `PASSWORD_RESET`, `ACCESS_APPROVED`,
 `ACCESS_REJECTED`, `CHANGE_APPROVED`, `CHANGE_REJECTED`, `MEMBER_EDITED`,
-`MEMBER_ADDED`.
+`MEMBER_ADDED`, `MEMBERS_EXPORTED`.
 
 Audit writes never break the main request; failures are logged to the console.
 

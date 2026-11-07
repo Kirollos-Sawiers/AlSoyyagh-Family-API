@@ -12,6 +12,7 @@ import accessRoutes from "./routes/accessRequests/accessRequests.routes.js";
 import changeRoutes from "./routes/changeRequests/changeRequests.routes.js";
 import treeRoutes from "./routes/trees/trees.routes.js";
 import memberRoutes from "./routes/members/members.routes.js";
+import exportRoutes from "./routes/exports/exports.routes.js";
 import adminRoutes from "./routes/admin/admin.routes.js";
 
 export const app = express();
@@ -27,6 +28,7 @@ app.use(
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["Content-Disposition"],
     maxAge: 86400,
   }),
 );
@@ -55,6 +57,7 @@ app.use("/api/access-requests", accessRoutes);
 app.use("/api/change-requests", changeRoutes);
 app.use("/api/trees", treeRoutes);
 app.use("/api/members", memberRoutes);
+app.use("/api/exports", exportRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.use(notFoundHandler);
